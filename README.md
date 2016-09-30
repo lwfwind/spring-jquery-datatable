@@ -44,22 +44,22 @@ On the client-side, you can now define your table loading data dynamically :
 
 ```javascript
 $(document).ready(function() {
-var table = $('#teaPCApiActionTable').DataTable({
-            processing: true,
-            serverSide: true,
-            columns: [
-                {"data": "time"},
-                {"data": "uid"},
-                {"data": "api_name"},
-                {"data": "request_type"},
-                {"data": "parameters"},
-                {"data": "response_idx"}
-            ],
-            ajax: {
-                url: '/pc/get_pc_tea_api_action',
-                type: 'GET'
-            }
-        });
+    var table = $('#teaPCApiActionTable').DataTable({
+        processing: true,
+        serverSide: true,
+        columns: [
+            {"data": "time"},
+            {"data": "uid"},
+            {"data": "api_name"},
+            {"data": "request_type"},
+            {"data": "parameters"},
+            {"data": "response_idx"}
+        ],
+        ajax: {
+            url: '/pc/get_pc_tea_api_action',
+            type: 'GET'
+        }
+    });
 }
 ```
 
