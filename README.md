@@ -4,7 +4,8 @@ This project is an extension of the Spring project to ease its use with jQuery p
 
 This will allow you to handle the Ajax requests sent by DataTables for each draw of the information on the page (i.e. when paging, ordering, searching, etc.) from Spring **@Controller**.
 
-Example:
+## Example:
+#### On the server-side
 ```java
 @Controller
 @RequestMapping(value = "/pc")
@@ -36,9 +37,35 @@ public class PCActionServiceImpl implements PCActionService {
 
 }
 ```
+
+#### On the client-side
+
+On the client-side, you can now define your table loading data dynamically :
+
+```javascript
+$(document).ready(function() {
+var table = $('#teaPCApiActionTable').DataTable({
+            processing: true,
+            serverSide: true,
+            columns: [
+                {"data": "time"},
+                {"data": "uid"},
+                {"data": "api_name"},
+                {"data": "request_type"},
+                {"data": "parameters"},
+                {"data": "response_idx"}
+            ],
+            ajax: {
+                url: '/pc/get_pc_tea_api_action',
+                type: 'GET'
+            }
+        });
+}
+```
+
 ## Maven dependency
 
-```
+```xml
 <dependency>
     <groupId>com.github.lwfwind.web</groupId>
     <artifactId>spring-jquery-datatable</artifactId>
