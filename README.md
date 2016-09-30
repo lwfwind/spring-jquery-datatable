@@ -1,2 +1,47 @@
+
 # spring-jquery-datatable
-Spring extension to work with the great jQuery plugin DataTables (http://datatables.net/)
+This project is an extension of the Spring project to ease its use with jQuery plugin [DataTables](http://datatables.net/) with **server-side processing enabled**.
+
+This will allow you to handle the Ajax requests sent by DataTables for each draw of the information on the page (i.e. when paging, ordering, searching, etc.) from Spring **@Controller**.
+
+Example:
+```java
+@Controller
+@RequestMapping(value = "/pc")
+public class PCController {
+
+    @Autowired
+    private PCActionService pcActionService;
+
+    @RequestMapping(value = "/get_pc_tea_api_action")
+    @ResponseBody
+    public DatatablesResponse<PCTeaAPIAction> findPCTeaAPIActionsWithDatatablesCriterias(HttpServletRequest request) {
+        DatatablesCriterias criterias = DatatablesCriterias.getFromRequest(request);
+        DataSet<PCTeaAPIAction> actions = pcActionService.findPCTeaAPIActionsWithDatatablesCriterias(criterias);
+        return DatatablesResponse.build(actions, criterias);
+    }
+}
+```
+```java
+@Service
+public class PCActionServiceImpl implements PCActionService {
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Override
+    public DataSet<PCTeaAPIAction> findPCTeaAPIActionsWithDatatablesCriterias(DatatablesCriterias criterias) {
+        Query query = new Query(entityManager, PCTeaAPIAction.class, criterias);
+        return query.getResultDataSet();
+    }
+
+}
+```
+## Maven dependency
+
+```
+<dependency>
+    <groupId>com.github.lwfwind.web</groupId>
+    <artifactId>spring-jquery-datatable</artifactId>
+    <version>1.0</version>
+</dependency>
+```
