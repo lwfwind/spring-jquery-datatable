@@ -31,7 +31,7 @@ public class PCActionServiceImpl implements PCActionService {
 
     @Override
     public DataSet<PCTeaAPIAction> findPCTeaAPIActionsWithDatatablesCriterias(DatatablesCriterias criterias) {
-        Query query = new Query(entityManager, PCTeaAPIAction.class, criterias);
+        TableQuery query = new TableQuery(entityManager, PCTeaAPIAction.class, criterias);
         return query.getResultDataSet();
     }
 
@@ -69,6 +69,6 @@ $(document).ready(function() {
 <dependency>
     <groupId>com.github.lwfwind.web</groupId>
     <artifactId>spring-jquery-datatable</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
 </dependency>
 ```

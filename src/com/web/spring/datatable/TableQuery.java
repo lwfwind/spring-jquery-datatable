@@ -1,6 +1,7 @@
 package com.web.spring.datatable;
 
 
+import com.web.spring.datatable.annotations.SqlCondition;
 import com.web.spring.datatable.annotations.SqlIndex;
 import com.web.spring.datatable.annotations.SqlIndexOperator;
 import com.web.spring.datatable.util.StringUtils;
@@ -15,14 +16,14 @@ import java.util.Iterator;
 import java.util.List;
 
 
-public class Query {
+public class TableQuery {
     private EntityManager entityManager;
     private Class entiteClass;
     private DatatablesCriterias criterias;
     private Long totalCount = 0L;
     private int displayRecordsLength = 0;
 
-    public <T> Query(EntityManager entityManager, Class<T> entiteClass, DatatablesCriterias criterias) {
+    public <T> TableQuery(EntityManager entityManager, Class<T> entiteClass, DatatablesCriterias criterias) {
         this.entityManager = entityManager;
         this.entiteClass = entiteClass;
         this.criterias = criterias;
@@ -40,6 +41,7 @@ public class Query {
         List<String> paramList = new ArrayList<String>();
         List<String> indexColumnList = new ArrayList<String>();
         List<String> unIndexColumnList = new ArrayList<String>();
+        HashMap<String, String> conditionMap = new HashMap<>();
         HashMap<String, String> indexOperatorMap = new HashMap<>();
         Field[] fields = this.entiteClass.getDeclaredFields();
         for (Field field : fields) {
@@ -67,41 +69,40 @@ public class Query {
                     unIndexColumnList.add(field.getName());
                 }
             }
+            if (field.isAnnotationPresent(SqlCondition.class)) {
+                SqlCondition sqlCondition = field.getAnnotation(SqlCondition.class);
+                if (field.isAnnotationPresent(Column.class)) {
+                    Column column = field.getAnnotation(Column.class);
+                    conditionMap.put(column.name(),sqlCondition.value());
+                } else {
+                    conditionMap.put(field.getName(),sqlCondition.value());
+                }
+            }
         }
 
         /**
-         * Step 1.1: global filtering
+         * Step 1.1: custom condition
          */
-        if (StringUtils.isNotBlank(criterias.getSearch()) && criterias.hasOneSearchableColumn()) {
+        for (ColumnDef columnDef : criterias.getColumnDefs()) {
             queryBuilder.append(" WHERE ");
-            for (ColumnDef columnDef : criterias.getColumnDefs()) {
-                if (columnDef.isSearchable() && StringUtils.isBlank(columnDef.getSearch()) && indexColumnList.contains(columnDef.getName())) {
-                    if (indexOperatorMap.get(columnDef.getName()) != null) {
-                        if (indexOperatorMap.get(columnDef.getName()).equalsIgnoreCase("like")) {
-                            paramList.add(" p." + columnDef.getName()
-                                    + " like '?%'".replace("?", criterias.getSearch()));
-                        } else {
-                            paramList.add(" p." + columnDef.getName()
-                                    + " = '?'".replace("?", criterias.getSearch()));
-                        }
-                    } else {
-                        paramList.add(" p." + columnDef.getName()
-                                + " = '?'".replace("?", criterias.getSearch()));
-                    }
-                }
-            }
-            for (ColumnDef columnDef : criterias.getColumnDefs()) {
-                if (columnDef.isSearchable() && StringUtils.isBlank(columnDef.getSearch()) && unIndexColumnList.contains(columnDef.getName())) {
-                    paramList.add(" p." + columnDef.getName()
-                            + " LIKE '%?%'".replace("?", criterias.getSearch()));
+            if (indexColumnList.contains(columnDef.getName())) {
+                if (conditionMap.get(columnDef.getName()) != null) {
+                    String replace = conditionMap.get(columnDef.getName()).replaceAll(columnDef.getName(),"p."+columnDef.getName());
+                    paramList.add(" " + replace);
                 }
             }
 
+            if (unIndexColumnList.contains(columnDef.getName())) {
+                if (conditionMap.get(columnDef.getName()) != null) {
+                    String replace = conditionMap.get(columnDef.getName()).replaceAll(columnDef.getName(),"p."+columnDef.getName());
+                    paramList.add(" " + replace);
+                }
+            }
             Iterator<String> itr = paramList.iterator();
             while (itr.hasNext()) {
                 queryBuilder.append(itr.next());
                 if (itr.hasNext()) {
-                    queryBuilder.append(" OR ");
+                    queryBuilder.append(" AND ");
                 }
             }
         }
@@ -170,6 +171,49 @@ public class Query {
             }
         }
 
+        /**
+         * Step 1.3: global filtering
+         */
+        if (StringUtils.isNotBlank(criterias.getSearch()) && criterias.hasOneSearchableColumn()) {
+            paramList = new ArrayList<String>();
+            if (!queryBuilder.toString().contains("WHERE")) {
+                queryBuilder.append(" WHERE (");
+            } else {
+                queryBuilder.append(" AND (");
+            }
+            for (ColumnDef columnDef : criterias.getColumnDefs()) {
+                if (columnDef.isSearchable() && StringUtils.isBlank(columnDef.getSearch()) && indexColumnList.contains(columnDef.getName())) {
+                    if (indexOperatorMap.get(columnDef.getName()) != null) {
+                        if (indexOperatorMap.get(columnDef.getName()).equalsIgnoreCase("like")) {
+                            paramList.add(" p." + columnDef.getName()
+                                    + " like '?%'".replace("?", criterias.getSearch()));
+                        } else {
+                            paramList.add(" p." + columnDef.getName()
+                                    + " = '?'".replace("?", criterias.getSearch()));
+                        }
+                    } else {
+                        paramList.add(" p." + columnDef.getName()
+                                + " = '?'".replace("?", criterias.getSearch()));
+                    }
+                }
+            }
+            for (ColumnDef columnDef : criterias.getColumnDefs()) {
+                if (columnDef.isSearchable() && StringUtils.isBlank(columnDef.getSearch()) && unIndexColumnList.contains(columnDef.getName())) {
+                    paramList.add(" p." + columnDef.getName()
+                            + " LIKE '%?%'".replace("?", criterias.getSearch()));
+                }
+            }
+
+            Iterator<String> itr = paramList.iterator();
+            while (itr.hasNext()) {
+                queryBuilder.append(itr.next());
+                if (itr.hasNext()) {
+                    queryBuilder.append(" OR ");
+                }
+            }
+            queryBuilder.append(" )");
+        }
+
         return queryBuilder;
     }
 
@@ -222,8 +266,6 @@ public class Query {
         if (criterias.getStart() == 0) {
             if (criterias.getLength() > displayRecordsLength) {
                 return (long) displayRecordsLength;
-            } else {
-                return totalCount;
             }
         }
         javax.persistence.Query query = this.entityManager.createQuery("SELECT COUNT(*) FROM " + entiteClass.getSimpleName() + " p" + getFilterQuery());
