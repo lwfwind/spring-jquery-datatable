@@ -83,25 +83,27 @@ public class TableQuery {
         /**
          * Step 1.1: custom condition
          */
-        for (ColumnDef columnDef : criterias.getColumnDefs()) {
+        if(conditionMap.size()>0) {
             queryBuilder.append(" WHERE ");
-            if (indexColumnList.contains(columnDef.getName())) {
-                if (conditionMap.get(columnDef.getName()) != null) {
-                    String replace = conditionMap.get(columnDef.getName()).replaceAll(columnDef.getName(),"p."+columnDef.getName());
-                    paramList.add(" " + replace);
+            for (ColumnDef columnDef : criterias.getColumnDefs()) {
+                if (indexColumnList.contains(columnDef.getName())) {
+                    if (conditionMap.get(columnDef.getName()) != null) {
+                        String replace = conditionMap.get(columnDef.getName()).replaceAll(columnDef.getName(), "p." + columnDef.getName());
+                        paramList.add(" " + replace);
+                    }
                 }
-            }
 
-            if (unIndexColumnList.contains(columnDef.getName())) {
-                if (conditionMap.get(columnDef.getName()) != null) {
-                    String replace = conditionMap.get(columnDef.getName()).replaceAll(columnDef.getName(),"p."+columnDef.getName());
-                    paramList.add(" " + replace);
+                if (unIndexColumnList.contains(columnDef.getName())) {
+                    if (conditionMap.get(columnDef.getName()) != null) {
+                        String replace = conditionMap.get(columnDef.getName()).replaceAll(columnDef.getName(), "p." + columnDef.getName());
+                        paramList.add(" " + replace);
+                    }
                 }
             }
-            Iterator<String> itr = paramList.iterator();
-            while (itr.hasNext()) {
-                queryBuilder.append(itr.next());
-                if (itr.hasNext()) {
+            Iterator<String> tr = paramList.iterator();
+            while (tr.hasNext()) {
+                queryBuilder.append(tr.next());
+                if (tr.hasNext()) {
                     queryBuilder.append(" AND ");
                 }
             }
