@@ -1,6 +1,6 @@
 package com.web.spring.datatable;
 
-import com.web.spring.datatable.util.StringHelper;
+import com.library.common.StringHelper;
 import com.web.spring.datatable.util.Validate;
 
 import javax.servlet.http.HttpServletRequest;

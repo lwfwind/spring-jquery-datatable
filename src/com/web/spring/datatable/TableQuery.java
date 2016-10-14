@@ -1,19 +1,17 @@
 package com.web.spring.datatable;
 
 
+import com.library.common.ReflectHelper;
+import com.library.common.StringHelper;
 import com.web.spring.datatable.annotations.SqlCondition;
 import com.web.spring.datatable.annotations.SqlIndex;
 import com.web.spring.datatable.annotations.SqlIndexOperator;
-import com.web.spring.datatable.util.ReflectHelper;
-import com.web.spring.datatable.util.StringHelper;
 
 import javax.persistence.Column;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.*;
 

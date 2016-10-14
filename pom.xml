@@ -6,7 +6,7 @@
 
     <groupId>com.github.lwfwind.web</groupId>
     <artifactId>spring-jquery-datatable</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
     <packaging>jar</packaging>
     <description>Spring extension to work with the great jQuery plugin DataTables</description>
     <url>https://github.com/lwfwind/spring-jquery-datatable</url>
@@ -63,6 +63,11 @@
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.16</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.lwfwind.common</groupId>
+            <artifactId>java-common-helper</artifactId>
+            <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
