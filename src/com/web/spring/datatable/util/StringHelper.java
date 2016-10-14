@@ -5,7 +5,7 @@ import java.util.*;
 /**
  * Collection of utilities to ease working with {@link String}.
  */
-public final class StringUtils {
+public final class StringHelper {
 
     private static final String[] ESCAPES;
 
@@ -21,17 +21,17 @@ public final class StringUtils {
 
     /**
      * Checks if a String is whitespace, empty ("") or null.
-     * StringUtils.isBlank(null)      = true
-     * StringUtils.isBlank("")        = true
-     * StringUtils.isBlank(" ")       = true
-     * StringUtils.isBlank("bob")     = false
-     * StringUtils.isBlank("  bob  ") = false
+     * StringHelper.isEmpty(null)      = true
+     * StringHelper.isEmpty("")        = true
+     * StringHelper.isEmpty(" ")       = true
+     * StringHelper.isEmpty("bob")     = false
+     * StringHelper.isEmpty("  bob  ") = false
      *
      * @param str the String to check, may be null
      * @return <code>true</code> if the String is null, empty or whitespace
      * @since 2.0
      */
-    public static boolean isBlank(String str) {
+    public static boolean isEmpty(String str) {
         int strLen;
         if (str == null || (strLen = str.length()) == 0) {
             return true;
@@ -46,35 +46,35 @@ public final class StringUtils {
 
     /**
      * Checks if a String is not empty (""), not null and not whitespace only.
-     * StringUtils.isNotBlank(null)      = false
-     * StringUtils.isNotBlank("")        = false
-     * StringUtils.isNotBlank(" ")       = false
-     * StringUtils.isNotBlank("bob")     = true
-     * StringUtils.isNotBlank("  bob  ") = true
+     * StringHelper.isNotEmpty(null)      = false
+     * StringHelper.isNotEmpty("")        = false
+     * StringHelper.isNotEmpty(" ")       = false
+     * StringHelper.isNotEmpty("bob")     = true
+     * StringHelper.isNotEmpty("  bob  ") = true
      *
      * @param str the String to check, may be null
      * @return <code>true</code> if the String is not empty and not null and not
      * whitespace
      * @since 2.0
      */
-    public static boolean isNotBlank(String str) {
-        return !StringUtils.isBlank(str);
+    public static boolean isNotEmpty(String str) {
+        return !StringHelper.isEmpty(str);
     }
 
     /**
      * Capitalizes a String changing the first letter to title case as per
      * {@link Character#toTitleCase(char)}. No other letters are changed.
-     * StringUtils.capitalize(null)  = null
-     * StringUtils.capitalize("")    = ""
-     * StringUtils.capitalize("cat") = "Cat"
-     * StringUtils.capitalize("cAt") = "CAt"
+     * StringHelper.capitalFirstLetter(null)  = null
+     * StringHelper.capitalFirstLetter("")    = ""
+     * StringHelper.capitalFirstLetter("cat") = "Cat"
+     * StringHelper.capitalFirstLetter("cAt") = "CAt"
      *
-     * @param str the String to capitalize, may be null
+     * @param str the String to capitalFirstLetter, may be null
      * @return the capitalized String, <code>null</code> if null String input
-     * @see #uncapitalize(String)
+     * @see #uncapitalFirstLetter(String)
      * @since 2.0
      */
-    public static String capitalize(String str) {
+    public static String capitalFirstLetter(String str) {
         if (str == null) {
             return null;
         }
@@ -89,17 +89,17 @@ public final class StringUtils {
     /**
      * Uncapitalizes a String changing the first letter to title case as per
      * {@link Character#toLowerCase(char)}. No other letters are changed.
-     * StringUtils.uncapitalize(null)  = null
-     * StringUtils.uncapitalize("")    = ""
-     * StringUtils.uncapitalize("Cat") = "cat"
-     * StringUtils.uncapitalize("CAT") = "cAT"
+     * StringHelper.uncapitalFirstLetter(null)  = null
+     * StringHelper.uncapitalFirstLetter("")    = ""
+     * StringHelper.uncapitalFirstLetter("Cat") = "cat"
+     * StringHelper.uncapitalFirstLetter("CAT") = "cAT"
      *
-     * @param str the String to uncapitalize, may be null
+     * @param str the String to uncapitalFirstLetter, may be null
      * @return the uncapitalized String, <code>null</code> if null String input
-     * @see #capitalize(String)
+     * @see #capitalFirstLetter(String)
      * @since 2.0
      */
-    public static String uncapitalize(String str) {
+    public static String uncapitalFirstLetter(String str) {
         if (str == null) {
             return null;
         }
@@ -146,13 +146,13 @@ public final class StringUtils {
      * A <code>null</code> String will return <code>false</code>. A
      * <code>null</code> or zero length search array will return
      * <code>false</code>.
-     * StringUtils.containsAny(null, *)                = false
-     * StringUtils.containsAny("", *)                  = false
-     * StringUtils.containsAny(*, null)                = false
-     * StringUtils.containsAny(*, [])                  = false
-     * StringUtils.containsAny("zzabyycdxx",['z','a']) = true
-     * StringUtils.containsAny("zzabyycdxx",['b','y']) = true
-     * StringUtils.containsAny("aba", ['z'])           = false
+     * StringHelper.containsAny(null, *)                = false
+     * StringHelper.containsAny("", *)                  = false
+     * StringHelper.containsAny(*, null)                = false
+     * StringHelper.containsAny(*, [])                  = false
+     * StringHelper.containsAny("zzabyycdxx",['z','a']) = true
+     * StringHelper.containsAny("zzabyycdxx",['b','y']) = true
+     * StringHelper.containsAny("aba", ['z'])           = false
      *
      * @param str         the String to check, may be null
      * @param searchChars the chars to search for, may be null
@@ -202,10 +202,10 @@ public final class StringUtils {
      * Check that the given CharSequence is neither {@code null} nor of length 0.
      * Note: Will return {@code true} for a CharSequence that purely consists of
      * whitespace.
-     * StringUtils.hasLength(null) = false
-     * StringUtils.hasLength("") = false
-     * StringUtils.hasLength(" ") = true
-     * StringUtils.hasLength("Hello") = true
+     * StringHelper.hasLength(null) = false
+     * StringHelper.hasLength("") = false
+     * StringHelper.hasLength(" ") = true
+     * StringHelper.hasLength("Hello") = true
      *
      * @param str the CharSequence to check (may be {@code null})
      * @return {@code true} if the CharSequence is not null and has length
@@ -297,13 +297,13 @@ public final class StringUtils {
     /**
      * Counts how many times the substring appears in the larger string.
      * A {@code null} or empty ("") String input returns {@code 0}.
-     * StringUtils.countMatches(null, *)       = 0
-     * StringUtils.countMatches("", *)         = 0
-     * StringUtils.countMatches("abba", null)  = 0
-     * StringUtils.countMatches("abba", "")    = 0
-     * StringUtils.countMatches("abba", "a")   = 2
-     * StringUtils.countMatches("abba", "ab")  = 1
-     * StringUtils.countMatches("abba", "xxx") = 0
+     * StringHelper.countMatches(null, *)       = 0
+     * StringHelper.countMatches("", *)         = 0
+     * StringHelper.countMatches("abba", null)  = 0
+     * StringHelper.countMatches("abba", "")    = 0
+     * StringHelper.countMatches("abba", "a")   = 2
+     * StringHelper.countMatches("abba", "ab")  = 1
+     * StringHelper.countMatches("abba", "xxx") = 0
      *
      * @param str the CharSequence to check, may be null
      * @param sub the substring to count, may be null
@@ -539,11 +539,11 @@ public final class StringUtils {
      * Check whether the given CharSequence has actual text. More specifically,
      * returns {@code true} if the string not {@code null}, its length is greater
      * than 0, and it contains at least one non-whitespace character.
-     * StringUtils.hasText(null) = false
-     * StringUtils.hasText("") = false
-     * StringUtils.hasText(" ") = false
-     * StringUtils.hasText("12345") = true
-     * StringUtils.hasText(" 12345 ") = true
+     * StringHelper.hasText(null) = false
+     * StringHelper.hasText("") = false
+     * StringHelper.hasText(" ") = false
+     * StringHelper.hasText("12345") = true
+     * StringHelper.hasText(" 12345 ") = true
      *
      * @param str the CharSequence to check (may be {@code null})
      * @return {@code true} if the CharSequence is not {@code null}, its length
@@ -579,5 +579,17 @@ public final class StringUtils {
 
     public static String getTestString(String str) {
         return str.replaceAll("\n", "").replaceAll("\r", "").replaceAll(" ", "");
+    }
+
+    /**
+     * Gets between string.
+     *
+     * @param origiString the origi string
+     * @param beforeStr   the before str
+     * @param afterStr    the after str
+     * @return the tokens list
+     */
+    public static String getBetweenString(String origiString, String beforeStr, String afterStr) {
+        return origiString.substring(origiString.indexOf(beforeStr) + beforeStr.length(), origiString.indexOf(afterStr));
     }
 }

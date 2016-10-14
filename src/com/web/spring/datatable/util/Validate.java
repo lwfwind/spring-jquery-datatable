@@ -21,7 +21,7 @@ public final class Validate {
     }
 
     public static void notBlank(String object, String message) {
-        if (StringUtils.isBlank(object)) {
+        if (StringHelper.isEmpty(object)) {
             throw new IllegalArgumentException(message);
         }
     }

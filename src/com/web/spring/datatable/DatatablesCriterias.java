@@ -1,6 +1,6 @@
 package com.web.spring.datatable;
 
-import com.web.spring.datatable.util.StringUtils;
+import com.web.spring.datatable.util.StringHelper;
 import com.web.spring.datatable.util.Validate;
 
 import javax.servlet.http.HttpServletRequest;
@@ -56,9 +56,9 @@ public class DatatablesCriterias implements Serializable {
         String paramStart = request.getParameter(DTConstants.DT_I_START);
         String paramLength = request.getParameter(DTConstants.DT_I_LENGTH);
 
-        Integer draw = StringUtils.isNotBlank(paramDraw) ? Integer.parseInt(paramDraw) : -1;
-        Integer start = StringUtils.isNotBlank(paramStart) ? Integer.parseInt(paramStart) : -1;
-        Integer length = StringUtils.isNotBlank(paramLength) ? Integer.parseInt(paramLength) : -1;
+        Integer draw = StringHelper.isNotEmpty(paramDraw) ? Integer.parseInt(paramDraw) : -1;
+        Integer start = StringHelper.isNotEmpty(paramStart) ? Integer.parseInt(paramStart) : -1;
+        Integer length = StringHelper.isNotEmpty(paramLength) ? Integer.parseInt(paramLength) : -1;
 
         // Column definitions
         List<ColumnDef> columnDefs = new ArrayList<ColumnDef>();
@@ -74,7 +74,7 @@ public class DatatablesCriterias implements Serializable {
 
             String searchTerm = request.getParameter("columns[" + i + "][search][value]");
 
-            if (StringUtils.isNotBlank(searchTerm)) {
+            if (StringHelper.isNotEmpty(searchTerm)) {
                 columnDef.setFiltered(true);
                 String[] splittedSearch = searchTerm.split("~");
                 if ("~".equals(searchTerm)) {
@@ -109,11 +109,11 @@ public class DatatablesCriterias implements Serializable {
             String paramSortedCol = request.getParameter("order[" + i + "][column]");
 
             // The column is being sorted
-            if (StringUtils.isNotBlank(paramSortedCol)) {
+            if (StringHelper.isNotEmpty(paramSortedCol)) {
                 Integer sortedCol = Integer.parseInt(paramSortedCol);
                 ColumnDef sortedColumnDef = columnDefs.get(sortedCol);
                 String sortedColDirection = request.getParameter("order[" + i + "][dir]");
-                if (StringUtils.isNotBlank(sortedColDirection)) {
+                if (StringHelper.isNotEmpty(sortedColDirection)) {
                     sortedColumnDef.setSortDirection(ColumnDef.SortDirection.valueOf(sortedColDirection.toUpperCase()));
                 }
 
@@ -206,8 +206,8 @@ public class DatatablesCriterias implements Serializable {
      */
     public Boolean hasOneFilteredColumn() {
         for (ColumnDef columnDef : this.columnDefs) {
-            if (StringUtils.isNotBlank(columnDef.getSearch()) || StringUtils.isNotBlank(columnDef.getSearchFrom())
-                    || StringUtils.isNotBlank(columnDef.getSearchTo())) {
+            if (StringHelper.isNotEmpty(columnDef.getSearch()) || StringHelper.isNotEmpty(columnDef.getSearchFrom())
+                    || StringHelper.isNotEmpty(columnDef.getSearchTo())) {
                 return true;
             }
         }
