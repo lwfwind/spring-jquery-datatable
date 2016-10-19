@@ -7,10 +7,8 @@ import com.web.spring.datatable.annotations.SqlCondition;
 import com.web.spring.datatable.annotations.SqlIndex;
 import com.web.spring.datatable.annotations.SqlIndexOperator;
 
-import javax.persistence.Column;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.*;
@@ -25,11 +23,24 @@ public class TableQuery {
     private String customSQL = "";
     private List<String> selectColumnList = new ArrayList<>();
     private HashMap<String, Class> fieldTypeMap = new HashMap<>();
+    private String entiteTableName = "";
+    private static HashMap<String,Boolean> innodbMap = new HashMap<>();
+    private static boolean isInnodbFlag = false;
 
+    @SuppressWarnings("unchecked")
     public <T> TableQuery(EntityManager entityManager, Class<T> entiteClass, DatatablesCriterias criterias) {
         this.entityManager = entityManager;
         this.entiteClass = entiteClass;
         this.criterias = criterias;
+
+        if(!isInnodbFlag) {
+            isInnodbFlag = true;
+            Query query = this.entityManager.createNativeQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = 'InnoDB'");
+            List<Object> result = query.getResultList();
+            for (Object object : result) {
+                innodbMap.put(object.toString(), true);
+            }
+        }
     }
 
     public <T> TableQuery(EntityManager entityManager, Class<T> entiteClass, DatatablesCriterias criterias, String customSQL) {
@@ -61,6 +72,14 @@ public class TableQuery {
         List<String> unIndexColumnList = new ArrayList<String>();
         HashMap<String, String> conditionMap = new HashMap<>();
         HashMap<String, String> indexOperatorMap = new HashMap<>();
+
+        if(this.entiteClass.isAnnotationPresent(Table.class)){
+            Table table = (Table) this.entiteClass.getAnnotation(Table.class);
+            this.entiteTableName = table.name();
+        }
+        else{
+            this.entiteTableName = this.entiteClass.getSimpleName();
+        }
         Field[] fields = this.entiteClass.getDeclaredFields();
         for (Field field : fields) {
             fieldTypeMap.put(field.getName(),field.getType());
@@ -346,8 +365,14 @@ public class TableQuery {
 
     public Long getTotalCount() {
         if(this.customSQL.equals("")) {
-            javax.persistence.Query query = this.entityManager.createQuery("SELECT COUNT(*) FROM " + entiteClass.getSimpleName() + " p");
-            totalCount = (Long) query.getSingleResult();
+            if(innodbMap.get(this.entiteTableName) == null) {
+                javax.persistence.Query query = this.entityManager.createQuery("SELECT COUNT(*) FROM " + entiteClass.getSimpleName() + " p");
+                totalCount = (Long) query.getSingleResult();
+            }
+            else {
+                Query query = this.entityManager.createNativeQuery("SELECT TABLE_ROWS FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '"+this.entiteTableName+"'");
+                totalCount = ((BigInteger) query.getSingleResult()).longValue();
+            }
         }
         else
         {
