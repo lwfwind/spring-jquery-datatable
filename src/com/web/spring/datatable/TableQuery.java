@@ -27,20 +27,11 @@ public class TableQuery {
     private static HashMap<String,Boolean> innodbMap = new HashMap<>();
     private static boolean isInnodbFlag = false;
 
-    @SuppressWarnings("unchecked")
     public <T> TableQuery(EntityManager entityManager, Class<T> entiteClass, DatatablesCriterias criterias) {
         this.entityManager = entityManager;
         this.entiteClass = entiteClass;
         this.criterias = criterias;
-
-        if(!isInnodbFlag) {
-            isInnodbFlag = true;
-            Query query = this.entityManager.createNativeQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = 'InnoDB'");
-            List<Object> result = query.getResultList();
-            for (Object object : result) {
-                innodbMap.put(object.toString(), true);
-            }
-        }
+        init();
     }
 
     public <T> TableQuery(EntityManager entityManager, Class<T> entiteClass, DatatablesCriterias criterias, String customSQL) {
@@ -54,6 +45,27 @@ public class TableQuery {
                 selectColumnList.add(aColumnArray.substring(aColumnArray.indexOf("as") + 2).trim());
             } else {
                 selectColumnList.add(aColumnArray.trim());
+            }
+        }
+        init();
+    }
+
+    @SuppressWarnings("unchecked")
+    public void init(){
+        if(this.entiteClass.isAnnotationPresent(Table.class)){
+            Table table = (Table) this.entiteClass.getAnnotation(Table.class);
+            this.entiteTableName = table.name();
+        }
+        else{
+            this.entiteTableName = this.entiteClass.getSimpleName();
+        }
+
+        if(!isInnodbFlag) {
+            isInnodbFlag = true;
+            Query query = this.entityManager.createNativeQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = 'InnoDB'");
+            List<Object> result = query.getResultList();
+            for (Object object : result) {
+                innodbMap.put(object.toString(), true);
             }
         }
     }
@@ -72,14 +84,6 @@ public class TableQuery {
         List<String> unIndexColumnList = new ArrayList<String>();
         HashMap<String, String> conditionMap = new HashMap<>();
         HashMap<String, String> indexOperatorMap = new HashMap<>();
-
-        if(this.entiteClass.isAnnotationPresent(Table.class)){
-            Table table = (Table) this.entiteClass.getAnnotation(Table.class);
-            this.entiteTableName = table.name();
-        }
-        else{
-            this.entiteTableName = this.entiteClass.getSimpleName();
-        }
         Field[] fields = this.entiteClass.getDeclaredFields();
         for (Field field : fields) {
             fieldTypeMap.put(field.getName(),field.getType());
