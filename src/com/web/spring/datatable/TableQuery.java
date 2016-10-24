@@ -8,13 +8,14 @@ import com.web.spring.datatable.annotations.SqlIndex;
 import com.web.spring.datatable.annotations.SqlIndexOperator;
 
 import javax.persistence.*;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.*;
 
 
 public class TableQuery {
+    private static HashMap<String, Boolean> innodbMap = new HashMap<>();
+    private static boolean isInnodbFlag = false;
     private EntityManager entityManager;
     private Class entiteClass;
     private DatatablesCriterias criterias;
@@ -24,8 +25,6 @@ public class TableQuery {
     private List<String> selectColumnList = new ArrayList<>();
     private HashMap<String, Class> fieldTypeMap = new HashMap<>();
     private String entiteTableName = "";
-    private static HashMap<String,Boolean> innodbMap = new HashMap<>();
-    private static boolean isInnodbFlag = false;
 
     public <T> TableQuery(EntityManager entityManager, Class<T> entiteClass, DatatablesCriterias criterias) {
         this.entityManager = entityManager;
@@ -39,7 +38,7 @@ public class TableQuery {
         this.entiteClass = entiteClass;
         this.criterias = criterias;
         this.customSQL = customSQL;
-        String[] columnArray = StringHelper.getBetweenString(this.customSQL.toLowerCase(),"select","from").split(",");
+        String[] columnArray = StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", "from").split(",");
         for (String aColumnArray : columnArray) {
             if (aColumnArray.toLowerCase().contains("as")) {
                 selectColumnList.add(aColumnArray.substring(aColumnArray.indexOf("as") + 2).trim());
@@ -51,16 +50,15 @@ public class TableQuery {
     }
 
     @SuppressWarnings("unchecked")
-    public void init(){
-        if(this.entiteClass.isAnnotationPresent(Table.class)){
+    public void init() {
+        if (this.entiteClass.isAnnotationPresent(Table.class)) {
             Table table = (Table) this.entiteClass.getAnnotation(Table.class);
             this.entiteTableName = table.name();
-        }
-        else{
+        } else {
             this.entiteTableName = this.entiteClass.getSimpleName();
         }
 
-        if(!isInnodbFlag) {
+        if (!isInnodbFlag) {
             isInnodbFlag = true;
             Query query = this.entityManager.createNativeQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = 'InnoDB'");
             List<Object> result = query.getResultList();
@@ -86,7 +84,7 @@ public class TableQuery {
         HashMap<String, String> indexOperatorMap = new HashMap<>();
         Field[] fields = this.entiteClass.getDeclaredFields();
         for (Field field : fields) {
-            fieldTypeMap.put(field.getName(),field.getType());
+            fieldTypeMap.put(field.getName(), field.getType());
             if (field.isAnnotationPresent(SqlIndex.class)) {
                 if (field.isAnnotationPresent(Column.class)) {
                     Column column = field.getAnnotation(Column.class);
@@ -115,9 +113,9 @@ public class TableQuery {
                 SqlCondition sqlCondition = field.getAnnotation(SqlCondition.class);
                 if (field.isAnnotationPresent(Column.class)) {
                     Column column = field.getAnnotation(Column.class);
-                    conditionMap.put(column.name(),sqlCondition.value());
+                    conditionMap.put(column.name(), sqlCondition.value());
                 } else {
-                    conditionMap.put(field.getName(),sqlCondition.value());
+                    conditionMap.put(field.getName(), sqlCondition.value());
                 }
             }
         }
@@ -125,18 +123,24 @@ public class TableQuery {
         /**
          * Step 1.1: custom condition
          */
-        if(conditionMap.size()>0) {
+        if (conditionMap.size() > 0) {
             queryBuilder.append(" WHERE ");
             for (ColumnDef columnDef : criterias.getColumnDefs()) {
                 if (indexColumnList.contains(columnDef.getName())) {
                     if (conditionMap.get(columnDef.getName()) != null) {
-                        paramList.add(" " + conditionMap.get(columnDef.getName()));
+                        String condition = conditionMap.get(columnDef.getName());
+                        if (!condition.contains("?")) {
+                            paramList.add(" " + condition);
+                        }
                     }
                 }
 
                 if (unIndexColumnList.contains(columnDef.getName())) {
                     if (conditionMap.get(columnDef.getName()) != null) {
-                        paramList.add(" " + conditionMap.get(columnDef.getName()));
+                        String condition = conditionMap.get(columnDef.getName());
+                        if (!condition.contains("?")) {
+                            paramList.add(" " + condition);
+                        }
                     }
                 }
             }
@@ -162,17 +166,24 @@ public class TableQuery {
             for (ColumnDef columnDef : criterias.getColumnDefs()) {
                 if (columnDef.isSearchable() && indexColumnList.contains(columnDef.getName())) {
                     if (StringHelper.isNotEmpty(columnDef.getSearch())) {
-                        if (indexOperatorMap.get(columnDef.getName()) != null) {
-                            if (indexOperatorMap.get(columnDef.getName()).equalsIgnoreCase("like")) {
-                                paramList.add(" " + columnDef.getName()
-                                        + " like '?%'".replace("?", columnDef.getSearch()));
+                        if (conditionMap.get(columnDef.getName()) == null) {
+                            if (indexOperatorMap.get(columnDef.getName()) != null) {
+                                if (indexOperatorMap.get(columnDef.getName()).equalsIgnoreCase("like")) {
+                                    paramList.add(" " + columnDef.getName()
+                                            + " like '?%'".replace("?", columnDef.getSearch()));
+                                } else {
+                                    paramList.add(" " + columnDef.getName()
+                                            + " = '?'".replace("?", columnDef.getSearch()));
+                                }
                             } else {
                                 paramList.add(" " + columnDef.getName()
                                         + " = '?'".replace("?", columnDef.getSearch()));
                             }
                         } else {
-                            paramList.add(" " + columnDef.getName()
-                                    + " = '?'".replace("?", columnDef.getSearch()));
+                            String condition = conditionMap.get(columnDef.getName());
+                            if (condition.contains("?")) {
+                                paramList.add(" " + condition.replaceAll("\\?", columnDef.getSearch()));
+                            }
                         }
                     }
                 }
@@ -198,8 +209,15 @@ public class TableQuery {
                         paramList.add("" + columnDef.getName() + " < " + columnDef.getSearchTo());
                     }
                     if (StringHelper.isNotEmpty(columnDef.getSearch())) {
-                        paramList.add(" " + columnDef.getName()
-                                + " LIKE '%?%'".replace("?", columnDef.getSearch()));
+                        if (conditionMap.get(columnDef.getName()) == null) {
+                            paramList.add(" " + columnDef.getName()
+                                    + " LIKE '%?%'".replace("?", columnDef.getSearch()));
+                        } else {
+                            String condition = conditionMap.get(columnDef.getName());
+                            if (condition.contains("?")) {
+                                paramList.add(" " + condition.replaceAll("\\?", columnDef.getSearch()));
+                            }
+                        }
                     }
                 }
             }
@@ -262,11 +280,9 @@ public class TableQuery {
     @SuppressWarnings("unchecked")
     public <T> List<T> getRows() {
         StringBuilder queryBuilder = new StringBuilder();
-        if(this.customSQL.equals("")){
+        if (this.customSQL.equals("")) {
             queryBuilder.append("SELECT p FROM ").append(entiteClass.getSimpleName()).append(" p");
-        }
-        else
-        {
+        } else {
             queryBuilder.append("SELECT * FROM (").append(this.customSQL).append(") customSQL");
         }
 
@@ -294,7 +310,7 @@ public class TableQuery {
             }
         }
 
-        if(this.customSQL.equals("")) {
+        if (this.customSQL.equals("")) {
             TypedQuery<T> query = this.entityManager.createQuery(queryBuilder.toString(), entiteClass);
 
             /**
@@ -310,36 +326,35 @@ public class TableQuery {
             displayRecordsLength = result.size();
 
             return result;
-        }
-        else {
+        } else {
             Query query = this.entityManager.createNativeQuery(queryBuilder.toString());
 
             /**
              * Step 3: paging
              */
             query.setFirstResult(criterias.getStart());
-            if(criterias.getLength()==-1){
+            if (criterias.getLength() == -1) {
                 query.setMaxResults(query.getResultList().size());
-            }else{
+            } else {
                 query.setMaxResults(criterias.getLength());
             }
             List<Object[]> result = query.getResultList();
-            List<HashMap<String,Object>> resultMap = new ArrayList<>();
+            List<HashMap<String, Object>> resultMap = new ArrayList<>();
             for (Object[] object : result) {
-                int i =0;
-                HashMap<String,Object> map = new HashMap<String,Object>();
-                for(String columnName : selectColumnList){
-                    map.put(columnName,object[i]);
+                int i = 0;
+                HashMap<String, Object> map = new HashMap<String, Object>();
+                for (String columnName : selectColumnList) {
+                    map.put(columnName, object[i]);
                     i++;
                 }
                 resultMap.add(map);
             }
             List<T> result2 = new ArrayList<>();
-            for (HashMap<String,Object> map : resultMap) {
+            for (HashMap<String, Object> map : resultMap) {
                 T obj = ReflectHelper.newInstance(entiteClass);
                 for (Map.Entry<String, Object> entry : map.entrySet()) {
                     Class fieldType = fieldTypeMap.get(entry.getKey());
-                    ReflectHelper.setMethod(obj,entry.getKey(),entry.getValue(),fieldType);
+                    ReflectHelper.setMethod(obj, entry.getKey(), entry.getValue(), fieldType);
                 }
                 result2.add((T) obj);
             }
@@ -357,29 +372,25 @@ public class TableQuery {
                 return (long) displayRecordsLength;
             }
         }
-        if(this.customSQL.equals("")) {
+        if (this.customSQL.equals("")) {
             javax.persistence.Query query = this.entityManager.createQuery("SELECT COUNT(*) FROM " + entiteClass.getSimpleName() + " p" + getFilterQuery());
             return (Long) query.getSingleResult();
-        }
-        else {
+        } else {
             javax.persistence.Query query = this.entityManager.createNativeQuery("SELECT COUNT(*) FROM (" + this.customSQL + ") customSQL" + getFilterQuery());
             return ((BigInteger) query.getSingleResult()).longValue();
         }
     }
 
     public Long getTotalCount() {
-        if(this.customSQL.equals("")) {
-            if(innodbMap.get(this.entiteTableName) == null) {
+        if (this.customSQL.equals("")) {
+            if (innodbMap.get(this.entiteTableName) == null) {
                 javax.persistence.Query query = this.entityManager.createQuery("SELECT COUNT(*) FROM " + entiteClass.getSimpleName() + " p");
                 totalCount = (Long) query.getSingleResult();
-            }
-            else {
-                Query query = this.entityManager.createNativeQuery("SELECT TABLE_ROWS FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '"+this.entiteTableName+"'");
+            } else {
+                Query query = this.entityManager.createNativeQuery("SELECT TABLE_ROWS FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '" + this.entiteTableName + "'");
                 totalCount = ((BigInteger) query.getSingleResult()).longValue();
             }
-        }
-        else
-        {
+        } else {
             javax.persistence.Query query = this.entityManager.createNativeQuery("SELECT COUNT(*) FROM (" + this.customSQL + ") customSQL");
             totalCount = ((BigInteger) query.getSingleResult()).longValue();
         }
