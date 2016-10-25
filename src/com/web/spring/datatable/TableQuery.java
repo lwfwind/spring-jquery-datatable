@@ -201,11 +201,11 @@ public class TableQuery {
                         }
                     }
                     if (StringHelper.isNotEmpty(columnDef.getSearchTo())) {
-                        if(Validate.isDate(columnDef.getSearchFrom())) {
-                            paramList.add("" + columnDef.getName() + " < '" + columnDef.getSearchFrom() + "'");
+                        if(Validate.isDate(columnDef.getSearchTo())) {
+                            paramList.add("" + columnDef.getName() + " < '" + columnDef.getSearchTo() + "'");
                         }
                         else {
-                            paramList.add("" + columnDef.getName() + " < " + columnDef.getSearchFrom());
+                            paramList.add("" + columnDef.getName() + " < " + columnDef.getSearchTo());
                         }
                     }
                 }
@@ -222,11 +222,11 @@ public class TableQuery {
                         }
                     }
                     if (StringHelper.isNotEmpty(columnDef.getSearchTo())) {
-                        if(Validate.isDate(columnDef.getSearchFrom())) {
-                            paramList.add("" + columnDef.getName() + " < '" + columnDef.getSearchFrom() + "'");
+                        if(Validate.isDate(columnDef.getSearchTo())) {
+                            paramList.add("" + columnDef.getName() + " < '" + columnDef.getSearchTo() + "'");
                         }
                         else {
-                            paramList.add("" + columnDef.getName() + " < " + columnDef.getSearchFrom());
+                            paramList.add("" + columnDef.getName() + " < " + columnDef.getSearchTo());
                         }
                     }
                     if (StringHelper.isNotEmpty(columnDef.getSearch())) {
