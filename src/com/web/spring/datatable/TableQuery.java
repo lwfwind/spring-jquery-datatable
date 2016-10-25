@@ -11,11 +11,14 @@ import javax.persistence.*;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 public class TableQuery {
     private static HashMap<String, Boolean> innodbMap = new HashMap<>();
     private static boolean isInnodbFlag = false;
+    private Lock lock = new ReentrantLock();
     private EntityManager entityManager;
     private Class entiteClass;
     private DatatablesCriterias criterias;
@@ -58,13 +61,18 @@ public class TableQuery {
             this.entiteTableName = this.entiteClass.getSimpleName();
         }
 
-        if (!isInnodbFlag) {
-            isInnodbFlag = true;
-            Query query = this.entityManager.createNativeQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = 'InnoDB'");
-            List<Object> result = query.getResultList();
-            for (Object object : result) {
-                innodbMap.put(object.toString(), true);
+        lock.lock();
+        try {
+            if (!isInnodbFlag) {
+                isInnodbFlag = true;
+                Query query = this.entityManager.createNativeQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = 'InnoDB'");
+                List<Object> result = query.getResultList();
+                for (Object object : result) {
+                    innodbMap.put(object.toString(), true);
+                }
             }
+        } finally {
+            lock.unlock();
         }
     }
 
