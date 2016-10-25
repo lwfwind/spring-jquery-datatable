@@ -3,12 +3,17 @@ package com.web.spring.datatable.util;
 import com.library.common.StringHelper;
 
 import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Collection of utilities to ease validating arguments.
  */
 public final class Validate {
 
+    public static void main(String[] args){
+        System.out.println(isDate("2016-10-25 13:39:56"));
+    }
     /**
      * Prevents instantiation.
      */
@@ -69,5 +74,11 @@ public final class Validate {
         if (!condition) {
             throw new IllegalArgumentException(message);
         }
+    }
+
+    public static boolean isDate(String str) {
+        Pattern p = Pattern.compile("[0-9]{4}-[0-9]{2}-[0-9]{2}.*");
+        Matcher m = p.matcher(str);
+        return m.matches();
     }
 }

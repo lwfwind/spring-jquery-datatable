@@ -6,19 +6,17 @@ import com.library.common.StringHelper;
 import com.web.spring.datatable.annotations.SqlCondition;
 import com.web.spring.datatable.annotations.SqlIndex;
 import com.web.spring.datatable.annotations.SqlIndexOperator;
+import com.web.spring.datatable.util.Validate;
 
 import javax.persistence.*;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 
 public class TableQuery {
     private static HashMap<String, Boolean> innodbMap = new HashMap<>();
     private static boolean isInnodbFlag = false;
-    private Lock lock = new ReentrantLock();
     private EntityManager entityManager;
     private Class entiteClass;
     private DatatablesCriterias criterias;
@@ -61,18 +59,13 @@ public class TableQuery {
             this.entiteTableName = this.entiteClass.getSimpleName();
         }
 
-        lock.lock();
-        try {
-            if (!isInnodbFlag) {
-                isInnodbFlag = true;
-                Query query = this.entityManager.createNativeQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = 'InnoDB'");
-                List<Object> result = query.getResultList();
-                for (Object object : result) {
-                    innodbMap.put(object.toString(), true);
-                }
+        if (!isInnodbFlag) {
+            Query query = this.entityManager.createNativeQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = 'InnoDB'");
+            List<Object> result = query.getResultList();
+            for (Object object : result) {
+                innodbMap.put(object.toString(), true);
             }
-        } finally {
-            lock.unlock();
+            isInnodbFlag = true;
         }
     }
 
@@ -200,10 +193,20 @@ public class TableQuery {
             for (ColumnDef columnDef : criterias.getColumnDefs()) {
                 if (columnDef.isSearchable() && indexColumnList.contains(columnDef.getName())) {
                     if (StringHelper.isNotEmpty(columnDef.getSearchFrom())) {
-                        paramList.add("" + columnDef.getName() + " >= " + columnDef.getSearchFrom());
+                        if(Validate.isDate(columnDef.getSearchFrom())) {
+                            paramList.add("" + columnDef.getName() + " >= '" + columnDef.getSearchFrom() + "'");
+                        }
+                        else {
+                            paramList.add("" + columnDef.getName() + " >= " + columnDef.getSearchFrom());
+                        }
                     }
                     if (StringHelper.isNotEmpty(columnDef.getSearchTo())) {
-                        paramList.add("" + columnDef.getName() + " < " + columnDef.getSearchTo());
+                        if(Validate.isDate(columnDef.getSearchFrom())) {
+                            paramList.add("" + columnDef.getName() + " < '" + columnDef.getSearchFrom() + "'");
+                        }
+                        else {
+                            paramList.add("" + columnDef.getName() + " < " + columnDef.getSearchFrom());
+                        }
                     }
                 }
             }
@@ -211,10 +214,20 @@ public class TableQuery {
             for (ColumnDef columnDef : criterias.getColumnDefs()) {
                 if (columnDef.isSearchable() && unIndexColumnList.contains(columnDef.getName())) {
                     if (StringHelper.isNotEmpty(columnDef.getSearchFrom())) {
-                        paramList.add("" + columnDef.getName() + " >= " + columnDef.getSearchFrom());
+                        if(Validate.isDate(columnDef.getSearchFrom())) {
+                            paramList.add("" + columnDef.getName() + " >= '" + columnDef.getSearchFrom() + "'");
+                        }
+                        else {
+                            paramList.add("" + columnDef.getName() + " >= " + columnDef.getSearchFrom());
+                        }
                     }
                     if (StringHelper.isNotEmpty(columnDef.getSearchTo())) {
-                        paramList.add("" + columnDef.getName() + " < " + columnDef.getSearchTo());
+                        if(Validate.isDate(columnDef.getSearchFrom())) {
+                            paramList.add("" + columnDef.getName() + " < '" + columnDef.getSearchFrom() + "'");
+                        }
+                        else {
+                            paramList.add("" + columnDef.getName() + " < " + columnDef.getSearchFrom());
+                        }
                     }
                     if (StringHelper.isNotEmpty(columnDef.getSearch())) {
                         if (conditionMap.get(columnDef.getName()) == null) {
