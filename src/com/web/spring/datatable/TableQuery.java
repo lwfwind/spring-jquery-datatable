@@ -20,12 +20,13 @@ public class TableQuery {
     private EntityManager entityManager;
     private Class entiteClass;
     private DatatablesCriterias criterias;
-    private Long totalCount = 0L;
     private int displayRecordsLength = 0;
     private String customSQL = "";
     private List<String> selectColumnList = new ArrayList<>();
     private HashMap<String, Class> fieldTypeMap = new HashMap<>();
     private String entiteTableName = "";
+    private Long totalCount = 0L;
+    private Long filteredCount = 0L;
 
     public <T> TableQuery(EntityManager entityManager, Class<T> entiteClass, DatatablesCriterias criterias) {
         this.entityManager = entityManager;
@@ -50,6 +51,14 @@ public class TableQuery {
         init();
     }
 
+    public Long getFilteredCount() {
+        return filteredCount;
+    }
+
+    public Long getTotalCount() {
+        return totalCount;
+    }
+
     @SuppressWarnings("unchecked")
     public void init() {
         if (this.entiteClass.isAnnotationPresent(Table.class)) {
@@ -71,8 +80,8 @@ public class TableQuery {
 
     public <T> DataSet<T> getResultDataSet() {
         List<T> rows = getRows();
-        Long count = getTotalCount();
-        Long countFiltered = getFilteredCount();
+        Long count = fetchTotalCount();
+        Long countFiltered = fetchFilteredCount();
         return new DataSet<T>(rows, count, countFiltered);
     }
 
@@ -193,18 +202,16 @@ public class TableQuery {
             for (ColumnDef columnDef : criterias.getColumnDefs()) {
                 if (columnDef.isSearchable() && indexColumnList.contains(columnDef.getName())) {
                     if (StringHelper.isNotEmpty(columnDef.getSearchFrom())) {
-                        if(Validate.isDate(columnDef.getSearchFrom())) {
+                        if (Validate.isDate(columnDef.getSearchFrom())) {
                             paramList.add("" + columnDef.getName() + " >= '" + columnDef.getSearchFrom() + "'");
-                        }
-                        else {
+                        } else {
                             paramList.add("" + columnDef.getName() + " >= " + columnDef.getSearchFrom());
                         }
                     }
                     if (StringHelper.isNotEmpty(columnDef.getSearchTo())) {
-                        if(Validate.isDate(columnDef.getSearchTo())) {
+                        if (Validate.isDate(columnDef.getSearchTo())) {
                             paramList.add("" + columnDef.getName() + " < '" + columnDef.getSearchTo() + "'");
-                        }
-                        else {
+                        } else {
                             paramList.add("" + columnDef.getName() + " < " + columnDef.getSearchTo());
                         }
                     }
@@ -214,18 +221,16 @@ public class TableQuery {
             for (ColumnDef columnDef : criterias.getColumnDefs()) {
                 if (columnDef.isSearchable() && unIndexColumnList.contains(columnDef.getName())) {
                     if (StringHelper.isNotEmpty(columnDef.getSearchFrom())) {
-                        if(Validate.isDate(columnDef.getSearchFrom())) {
+                        if (Validate.isDate(columnDef.getSearchFrom())) {
                             paramList.add("" + columnDef.getName() + " >= '" + columnDef.getSearchFrom() + "'");
-                        }
-                        else {
+                        } else {
                             paramList.add("" + columnDef.getName() + " >= " + columnDef.getSearchFrom());
                         }
                     }
                     if (StringHelper.isNotEmpty(columnDef.getSearchTo())) {
-                        if(Validate.isDate(columnDef.getSearchTo())) {
+                        if (Validate.isDate(columnDef.getSearchTo())) {
                             paramList.add("" + columnDef.getName() + " < '" + columnDef.getSearchTo() + "'");
-                        }
-                        else {
+                        } else {
                             paramList.add("" + columnDef.getName() + " < " + columnDef.getSearchTo());
                         }
                     }
@@ -384,25 +389,28 @@ public class TableQuery {
         }
     }
 
-    public Long getFilteredCount() {
+    public Long fetchFilteredCount() {
         if (StringHelper.isEmpty(criterias.getSearch()) && (!criterias.hasOneFilteredColumn())) {
+            filteredCount = totalCount;
             return totalCount;
         }
         if (criterias.getStart() == 0) {
             if (criterias.getLength() > displayRecordsLength) {
-                return (long) displayRecordsLength;
+                filteredCount = (long) displayRecordsLength;
+                return filteredCount;
             }
         }
         if (this.customSQL.equals("")) {
             javax.persistence.Query query = this.entityManager.createQuery("SELECT COUNT(*) FROM " + entiteClass.getSimpleName() + " p" + getFilterQuery());
-            return (Long) query.getSingleResult();
+            filteredCount = (Long) query.getSingleResult();
         } else {
             javax.persistence.Query query = this.entityManager.createNativeQuery("SELECT COUNT(*) FROM (" + this.customSQL + ") customSQL" + getFilterQuery());
-            return ((BigInteger) query.getSingleResult()).longValue();
+            filteredCount = ((BigInteger) query.getSingleResult()).longValue();
         }
+        return filteredCount;
     }
 
-    public Long getTotalCount() {
+    public Long fetchTotalCount() {
         if (this.customSQL.equals("")) {
             if (innodbMap.get(this.entiteTableName) == null) {
                 javax.persistence.Query query = this.entityManager.createQuery("SELECT COUNT(*) FROM " + entiteClass.getSimpleName() + " p");
