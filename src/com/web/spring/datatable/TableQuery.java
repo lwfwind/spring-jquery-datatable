@@ -45,7 +45,12 @@ public class TableQuery {
             if (aColumnArray.toLowerCase().contains("as")) {
                 selectColumnList.add(aColumnArray.substring(aColumnArray.indexOf("as") + 2).trim());
             } else {
-                selectColumnList.add(aColumnArray.trim());
+                if(aColumnArray.contains(".")){
+                    selectColumnList.add(aColumnArray.substring(aColumnArray.indexOf(".") + 1).trim());
+                }
+                else {
+                    selectColumnList.add(aColumnArray.trim());
+                }
             }
         }
         init();
