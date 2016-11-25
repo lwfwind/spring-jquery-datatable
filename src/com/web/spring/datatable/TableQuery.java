@@ -40,16 +40,19 @@ public class TableQuery {
         this.entiteClass = entiteClass;
         this.criterias = criterias;
         this.customSQL = customSQL;
-        String[] columnArray = StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", "from").split(",");
-        for (String aColumnArray : columnArray) {
-            if (aColumnArray.toLowerCase().contains("as")) {
-                selectColumnList.add(aColumnArray.substring(aColumnArray.indexOf("as") + 2).trim());
+        List<String> columnList = Arrays.asList(StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", "from").split(","));
+        for (String columnName : columnList) {
+            if (columnName.toLowerCase().contains(" as ")) {
+                selectColumnList.add(columnName.substring(columnName.lastIndexOf("as") + 2).trim());
             } else {
-                if(aColumnArray.contains(".")){
-                    selectColumnList.add(aColumnArray.substring(aColumnArray.indexOf(".") + 1).trim());
+                if(columnName.contains("(") || columnName.contains(")")){
+                    continue;
+                }
+                if(columnName.contains(".")){
+                    selectColumnList.add(columnName.substring(columnName.lastIndexOf(".") + 1).trim());
                 }
                 else {
-                    selectColumnList.add(aColumnArray.trim());
+                    selectColumnList.add(columnName.trim());
                 }
             }
         }
