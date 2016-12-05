@@ -16,7 +16,7 @@ import java.util.*;
 
 public class TableQuery {
     private static HashMap<String, Boolean> innodbMap = new HashMap<>();
-    private static boolean isInnodbFlag = false;
+    private static HashMap<EntityManager, Boolean> entityManagerInitMap = new HashMap<>();
     private EntityManager entityManager;
     private Class entiteClass;
     private DatatablesCriterias criterias;
@@ -76,13 +76,13 @@ public class TableQuery {
             this.entiteTableName = this.entiteClass.getSimpleName();
         }
 
-        if (!isInnodbFlag) {
+        if (entityManagerInitMap.get(this.entityManager) == null) {
             Query query = this.entityManager.createNativeQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = 'InnoDB'");
             List<Object> result = query.getResultList();
             for (Object object : result) {
                 innodbMap.put(object.toString(), true);
             }
-            isInnodbFlag = true;
+            entityManagerInitMap.put(this.entityManager,true);
         }
     }
 
