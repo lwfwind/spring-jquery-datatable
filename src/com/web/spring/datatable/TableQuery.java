@@ -77,7 +77,7 @@ public class TableQuery {
         }
 
         if (entityManagerInitMap.get(this.entityManager) == null) {
-            Query query = this.entityManager.createNativeQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = 'InnoDB'");
+            Query query = this.entityManager.createNativeQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = 'InnoDB' and TABLE_SCHEMA != 'mysql'");
             List<Object> result = query.getResultList();
             for (Object object : result) {
                 innodbMap.put(object.toString(), true);
@@ -424,7 +424,7 @@ public class TableQuery {
                 javax.persistence.Query query = this.entityManager.createQuery("SELECT COUNT(*) FROM " + entiteClass.getSimpleName() + " p");
                 totalCount = (Long) query.getSingleResult();
             } else {
-                Query query = this.entityManager.createNativeQuery("SELECT TABLE_ROWS FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '" + this.entiteTableName + "'");
+                Query query = this.entityManager.createNativeQuery("SELECT TABLE_ROWS FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '" + this.entiteTableName + "' and TABLE_SCHEMA != 'mysql'");
                 totalCount = ((BigInteger) query.getSingleResult()).longValue();
             }
         } else {
