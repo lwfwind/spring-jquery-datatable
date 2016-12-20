@@ -69,6 +69,6 @@ $(document).ready(function() {
 <dependency>
     <groupId>com.github.lwfwind.web</groupId>
     <artifactId>spring-jquery-datatable</artifactId>
-    <version>2.3</version>
+    <version>2.4</version>
 </dependency>
 ```
