@@ -40,7 +40,7 @@ public class TableQuery {
         this.entiteClass = entiteClass;
         this.criterias = criterias;
         this.customSQL = customSQL;
-        List<String> columnList = Arrays.asList(StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", "from").split(","));
+        List<String> columnList = Arrays.asList(StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", " from ").split(","));
         for (String columnName : columnList) {
             if (columnName.toLowerCase().contains(" as ")) {
                 selectColumnList.add(columnName.substring(columnName.lastIndexOf("as") + 2).trim());
