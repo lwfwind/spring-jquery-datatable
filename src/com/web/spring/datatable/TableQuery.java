@@ -43,12 +43,14 @@ public class TableQuery {
         List<String> columnList;
         if(this.customSQL.toLowerCase().contains("\nfrom ")){
             columnList = Arrays.asList(StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", "\nfrom ").split(","));
-        }else {
+        }else if(this.customSQL.toLowerCase().contains(" from ")) {
             columnList = Arrays.asList(StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", " from ").split(","));
+        }else {
+            columnList = Arrays.asList(StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", " from\n").split(","));
         }
         for (String columnName : columnList) {
             if (columnName.toLowerCase().contains(" as ")) {
-                selectColumnList.add(columnName.substring(columnName.lastIndexOf("as") + 2).trim());
+                selectColumnList.add(columnName.substring(columnName.lastIndexOf(" as ") + 4).trim());
             } else {
                 if(columnName.contains("(") || columnName.contains(")")){
                     continue;
