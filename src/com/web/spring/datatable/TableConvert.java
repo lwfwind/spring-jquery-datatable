@@ -12,6 +12,9 @@ import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.lang.Math.toIntExact;
 
 
 public class TableConvert {
@@ -73,10 +76,10 @@ public class TableConvert {
             for (ColumnDef columnDef : criterias.getColumnDefs()) {
                 if (columnDef.isSearchable()) {
                     if (StringHelper.isNotEmpty(columnDef.getSearch())) {
-                        rows = (List<T>) rows.stream().filter(entity -> {
+                        rows = rows.stream().filter(entity -> {
                             Object result = ReflectHelper.getMethod(entity, columnDef.getName());
                             return result.toString().contains(columnDef.getSearch());
-                        });
+                        }).collect(Collectors.toList());;
                     }
                 }
             }
@@ -87,44 +90,44 @@ public class TableConvert {
                         if (Validate.isDate(columnDef.getSearchFrom())) {
                             try {
                                 Long unixTime = df.parse(columnDef.getSearchFrom()).getTime() / 1000;
-                                rows = (List<T>) rows.stream().filter(entity -> {
+                                rows = rows.stream().filter(entity -> {
                                     Object result = ReflectHelper.getMethod(entity, columnDef.getName());
                                     return Long.parseLong(result.toString()) >= unixTime;
-                                });
+                                }).collect(Collectors.toList());;
                             } catch (ParseException e) {
                                 e.printStackTrace();
                             }
                         } else {
-                            rows = (List<T>) rows.stream().filter(entity -> {
+                            rows = rows.stream().filter(entity -> {
                                 Object result = ReflectHelper.getMethod(entity, columnDef.getName());
                                 if (StringHelper.isInteger(columnDef.getSearchFrom())) {
                                     return Long.parseLong(result.toString()) >= Long.parseLong(columnDef.getSearchFrom());
                                 } else {
                                     return Float.parseFloat(result.toString()) >= Float.parseFloat(columnDef.getSearchFrom());
                                 }
-                            });
+                            }).collect(Collectors.toList());;
                         }
                     }
                     if (StringHelper.isNotEmpty(columnDef.getSearchTo())) {
                         if (Validate.isDate(columnDef.getSearchTo())) {
                             try {
                                 Long unixTime = df.parse(columnDef.getSearchTo()).getTime() / 1000;
-                                rows = (List<T>) rows.stream().filter(entity -> {
+                                rows = rows.stream().filter(entity -> {
                                     Object result = ReflectHelper.getMethod(entity, columnDef.getName());
                                     return Long.parseLong(result.toString()) <= unixTime;
-                                });
+                                }).collect(Collectors.toList());;
                             } catch (ParseException e) {
                                 e.printStackTrace();
                             }
                         } else {
-                            rows = (List<T>) rows.stream().filter(entity -> {
+                            rows = rows.stream().filter(entity -> {
                                 Object result = ReflectHelper.getMethod(entity, columnDef.getName());
                                 if (StringHelper.isInteger(columnDef.getSearchTo())) {
                                     return Long.parseLong(result.toString()) <= Long.parseLong(columnDef.getSearchTo());
                                 } else {
                                     return Float.parseFloat(result.toString()) <= Float.parseFloat(columnDef.getSearchTo());
                                 }
-                            });
+                            }).collect(Collectors.toList());;
                         }
                     }
                 }
@@ -135,14 +138,16 @@ public class TableConvert {
          * Step 2: global filtering
          */
         if (StringHelper.isNotEmpty(criterias.getSearch()) && criterias.hasOneSearchableColumn()) {
-            for (ColumnDef columnDef : criterias.getColumnDefs()) {
-                if (columnDef.isSearchable() && StringHelper.isEmpty(columnDef.getSearch())) {
-                    rows = (List<T>) rows.stream().filter(entity -> {
+            rows = rows.stream().filter(entity -> {
+                boolean condition = false;
+                for (ColumnDef columnDef : criterias.getColumnDefs()) {
+                    if (columnDef.isSearchable()) {
                         Object result = ReflectHelper.getMethod(entity, columnDef.getName());
-                        return result.toString().contains(criterias.getSearch());
-                    });
+                        condition = condition || result.toString().contains(criterias.getSearch());
+                    }
                 }
-            }
+                return condition;
+            }).collect(Collectors.toList());
         }
 
         this.filteredCount = (long) rows.size();
@@ -211,7 +216,12 @@ public class TableConvert {
         /**
          * Step 4: paging
          */
-        return rows.subList(criterias.getStart(), criterias.getStart() + criterias.getLength());
+        if(criterias.getStart() + criterias.getLength() <= filteredCount) {
+            return rows.subList(criterias.getStart(), criterias.getStart() + criterias.getLength());
+        }
+        else {
+            return rows.subList(criterias.getStart(),toIntExact(filteredCount));
+        }
     }
 
     public Long fetchFilteredCount() {
