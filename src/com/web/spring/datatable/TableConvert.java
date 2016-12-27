@@ -74,7 +74,7 @@ public class TableConvert {
          */
         if (criterias.hasOneSearchableColumn() && criterias.hasOneFilteredColumn()) {
             for (ColumnDef columnDef : criterias.getColumnDefs()) {
-                if (columnDef.isSearchable()) {
+                if (columnDef.isSearchable() && !columnDef.getName().equals("")) {
                     if (StringHelper.isNotEmpty(columnDef.getSearch())) {
                         rows = rows.stream().filter(entity -> {
                             Object result = ReflectHelper.getMethod(entity, columnDef.getName());
@@ -85,7 +85,7 @@ public class TableConvert {
             }
 
             for (ColumnDef columnDef : criterias.getColumnDefs()) {
-                if (columnDef.isSearchable()) {
+                if (columnDef.isSearchable() && !columnDef.getName().equals("")) {
                     if (StringHelper.isNotEmpty(columnDef.getSearchFrom())) {
                         if (Validate.isDate(columnDef.getSearchFrom())) {
                             try {
@@ -141,7 +141,7 @@ public class TableConvert {
             rows = rows.stream().filter(entity -> {
                 boolean condition = false;
                 for (ColumnDef columnDef : criterias.getColumnDefs()) {
-                    if (columnDef.isSearchable()) {
+                    if (columnDef.isSearchable() && !columnDef.getName().equals("")) {
                         Object result = ReflectHelper.getMethod(entity, columnDef.getName());
                         condition = condition || result.toString().contains(criterias.getSearch());
                     }
