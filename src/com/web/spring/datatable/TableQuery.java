@@ -41,13 +41,23 @@ public class TableQuery {
         this.criterias = criterias;
         this.customSQL = customSQL;
         List<String> columnList;
-        if(this.customSQL.toLowerCase().contains("\nfrom ")){
-            columnList = Arrays.asList(StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", "\nfrom ").split(","));
-        }else if(this.customSQL.toLowerCase().contains(" from ")) {
-            columnList = Arrays.asList(StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", " from ").split(","));
-        }else {
-            columnList = Arrays.asList(StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", " from\n").split(","));
+        int from_min = 10000;
+        String from_str = "";
+        int from_1 = this.customSQL.indexOf(" from ");
+        if(from_1 > 0 && from_min > from_1){
+            from_min = from_1;
+            from_str = " from ";
         }
+        int from_2 = this.customSQL.indexOf("\nfrom ");
+        if(from_2 > 0 && from_min > from_2){
+            from_min = from_2;
+            from_str = "\nfrom ";
+        }
+        int from_3 = this.customSQL.indexOf(" from\n");
+        if(from_3 > 0 && from_min > from_3){
+            from_str = " from\n";
+        }
+        columnList = Arrays.asList(StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", from_str).split(","));
         for (String columnName : columnList) {
             if (columnName.toLowerCase().contains(" as ")) {
                 selectColumnList.add(columnName.substring(columnName.lastIndexOf(" as ") + 4).trim());
