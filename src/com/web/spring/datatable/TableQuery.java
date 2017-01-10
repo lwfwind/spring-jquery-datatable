@@ -12,6 +12,8 @@ import javax.persistence.*;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class TableQuery {
@@ -57,7 +59,15 @@ public class TableQuery {
         if(from_3 > 0 && from_min > from_3){
             from_str = " from\n";
         }
-        columnList = Arrays.asList(StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", from_str).split(","));
+        String columnString = StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", from_str);
+        String regex = "\\(.*?\\) *?as";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(columnString);
+        while (matcher.find()) {
+            System.out.println("matcher: " + matcher.group(0));
+            columnString = columnString.replace(matcher.group(0).substring(0,matcher.group(0).length()-3),"");
+        }
+        columnList = Arrays.asList(columnString.split(","));
         for (String columnName : columnList) {
             if (columnName.toLowerCase().contains(" as ")) {
                 selectColumnList.add(columnName.substring(columnName.lastIndexOf(" as ") + 4).trim());
