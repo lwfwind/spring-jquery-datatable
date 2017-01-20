@@ -144,27 +144,54 @@ public class DatatablesCriterias implements Serializable {
         return columnNumber;
     }
 
+    /**
+     * Gets start.
+     *
+     * @return the start
+     */
     public Integer getStart() {
         return start;
     }
 
+    /**
+     * Gets length.
+     *
+     * @return the length
+     */
     public Integer getLength() {
         return length;
     }
 
+    /**
+     * Gets search.
+     *
+     * @return the search
+     */
     public String getSearch() {
         return search;
     }
 
+    /**
+     * Gets draw.
+     *
+     * @return the draw
+     */
     public Integer getDraw() {
         return draw;
     }
 
+    /**
+     * Gets column defs.
+     *
+     * @return the column defs
+     */
     public List<ColumnDef> getColumnDefs() {
         return columnDefs;
     }
 
     /**
+     * Gets sorting column defs.
+     *
      * @return all sorted columns.
      * @deprecated Use {@link #getSortedColumnDefs()} instead.
      */
@@ -173,6 +200,8 @@ public class DatatablesCriterias implements Serializable {
     }
 
     /**
+     * Gets sorted column defs.
+     *
      * @return all sorted columns.
      */
     public List<ColumnDef> getSortedColumnDefs() {
@@ -180,8 +209,9 @@ public class DatatablesCriterias implements Serializable {
     }
 
     /**
-     * @return {@code true} if one the columns is searchable, {@code false}
-     * otherwise.
+     * Has one filterable column boolean.
+     *
+     * @return {@code true} if one the columns is searchable, {@code false} otherwise.
      * @deprecated Use {@link #hasOneSearchableColumn()} instead.
      */
     public Boolean hasOneFilterableColumn() {
@@ -189,8 +219,9 @@ public class DatatablesCriterias implements Serializable {
     }
 
     /**
-     * @return {@code true} if one the columns is searchable, {@code false}
-     * otherwise.
+     * Has one searchable column boolean.
+     *
+     * @return {@code true} if one the columns is searchable, {@code false} otherwise.
      */
     public Boolean hasOneSearchableColumn() {
         for (ColumnDef columnDef : this.columnDefs) {
@@ -202,6 +233,8 @@ public class DatatablesCriterias implements Serializable {
     }
 
     /**
+     * Has one filtered column boolean.
+     *
      * @return true if a column is being filtered, false otherwise.
      */
     public Boolean hasOneFilteredColumn() {
@@ -215,6 +248,8 @@ public class DatatablesCriterias implements Serializable {
     }
 
     /**
+     * Has one sorted column boolean.
+     *
      * @return true if a column is being sorted, false otherwise.
      */
     public Boolean hasOneSortedColumn() {

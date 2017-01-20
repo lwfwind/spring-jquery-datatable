@@ -7,6 +7,8 @@ import java.util.List;
  * the table when server-side processing is enabled.
  * Since Datatables only support JSON at the moment, this bean must be converted
  * to JSON by the server.
+ *
+ * @param <T> the type parameter
  */
 public class DatatablesResponse<T> {
 
@@ -22,22 +24,50 @@ public class DatatablesResponse<T> {
         this.draw = criterias.getDraw();
     }
 
+    /**
+     * Build datatables response.
+     *
+     * @param <T>       the type parameter
+     * @param dataSet   the data set
+     * @param criterias the criterias
+     * @return the datatables response
+     */
     public static <T> DatatablesResponse<T> build(DataSet<T> dataSet, DatatablesCriterias criterias) {
         return new DatatablesResponse<T>(dataSet, criterias);
     }
 
+    /**
+     * Gets data.
+     *
+     * @return the data
+     */
     public List<T> getData() {
         return data;
     }
 
+    /**
+     * Gets records total.
+     *
+     * @return the records total
+     */
     public Long getRecordsTotal() {
         return recordsTotal;
     }
 
+    /**
+     * Gets records filtered.
+     *
+     * @return the records filtered
+     */
     public Long getRecordsFiltered() {
         return recordsFiltered;
     }
 
+    /**
+     * Gets draw.
+     *
+     * @return the draw
+     */
     public Integer getDraw() {
         return draw;
     }

@@ -16,6 +16,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+/**
+ * The type Table query.
+ */
 public class TableQuery {
     private static HashMap<String, Boolean> innodbMap = new HashMap<>();
     private static HashMap<EntityManager, Boolean> entityManagerInitMap = new HashMap<>();
@@ -30,6 +33,13 @@ public class TableQuery {
     private Long totalCount = 0L;
     private Long filteredCount = 0L;
 
+    /**
+     * Instantiates a new Table query.
+     *
+     * @param entityManager the entity manager
+     * @param entiteClass   the entite class
+     * @param criterias     the criterias
+     */
     public <T> TableQuery(EntityManager entityManager, Class<T> entiteClass, DatatablesCriterias criterias) {
         this.entityManager = entityManager;
         this.entiteClass = entiteClass;
@@ -37,6 +47,14 @@ public class TableQuery {
         init();
     }
 
+    /**
+     * Instantiates a new Table query.
+     *
+     * @param entityManager the entity manager
+     * @param entiteClass   the entite class
+     * @param criterias     the criterias
+     * @param customSQL     the custom sql
+     */
     public <T> TableQuery(EntityManager entityManager, Class<T> entiteClass, DatatablesCriterias criterias, String customSQL) {
         this.entityManager = entityManager;
         this.entiteClass = entiteClass;
@@ -46,17 +64,17 @@ public class TableQuery {
         int from_min = 10000;
         String from_str = "";
         int from_1 = this.customSQL.indexOf(" from ");
-        if(from_1 > 0 && from_min > from_1){
+        if (from_1 > 0 && from_min > from_1) {
             from_min = from_1;
             from_str = " from ";
         }
         int from_2 = this.customSQL.indexOf("\nfrom ");
-        if(from_2 > 0 && from_min > from_2){
+        if (from_2 > 0 && from_min > from_2) {
             from_min = from_2;
             from_str = "\nfrom ";
         }
         int from_3 = this.customSQL.indexOf(" from\n");
-        if(from_3 > 0 && from_min > from_3){
+        if (from_3 > 0 && from_min > from_3) {
             from_str = " from\n";
         }
         String columnString = StringHelper.getBetweenString(this.customSQL.toLowerCase(), "select", from_str);
@@ -65,20 +83,19 @@ public class TableQuery {
         Matcher matcher = pattern.matcher(columnString);
         while (matcher.find()) {
             System.out.println("matcher: " + matcher.group(0));
-            columnString = columnString.replace(matcher.group(0).substring(0,matcher.group(0).length()-3),"");
+            columnString = columnString.replace(matcher.group(0).substring(0, matcher.group(0).length() - 3), "");
         }
         columnList = Arrays.asList(columnString.split(","));
         for (String columnName : columnList) {
             if (columnName.toLowerCase().contains(" as ")) {
                 selectColumnList.add(columnName.substring(columnName.lastIndexOf(" as ") + 4).trim());
             } else {
-                if(columnName.contains("(") || columnName.contains(")")){
+                if (columnName.contains("(") || columnName.contains(")")) {
                     continue;
                 }
-                if(columnName.contains(".")){
+                if (columnName.contains(".")) {
                     selectColumnList.add(columnName.substring(columnName.lastIndexOf(".") + 1).trim());
-                }
-                else {
+                } else {
                     selectColumnList.add(columnName.trim());
                 }
             }
@@ -86,14 +103,27 @@ public class TableQuery {
         init();
     }
 
+    /**
+     * Gets filtered count.
+     *
+     * @return the filtered count
+     */
     public Long getFilteredCount() {
         return filteredCount;
     }
 
+    /**
+     * Gets total count.
+     *
+     * @return the total count
+     */
     public Long getTotalCount() {
         return totalCount;
     }
 
+    /**
+     * Init.
+     */
     @SuppressWarnings("unchecked")
     public void init() {
         if (this.entiteClass.isAnnotationPresent(Table.class)) {
@@ -109,10 +139,16 @@ public class TableQuery {
             for (Object object : result) {
                 innodbMap.put(object.toString(), true);
             }
-            entityManagerInitMap.put(this.entityManager,true);
+            entityManagerInitMap.put(this.entityManager, true);
         }
     }
 
+    /**
+     * Gets result data set.
+     *
+     * @param <T> the type parameter
+     * @return the result data set
+     */
     public <T> DataSet<T> getResultDataSet() {
         List<T> rows = getRows();
         Long count = fetchTotalCount();
@@ -120,6 +156,11 @@ public class TableQuery {
         return new DataSet<T>(rows, count, countFiltered);
     }
 
+    /**
+     * Gets filter query.
+     *
+     * @return the filter query
+     */
     public StringBuilder getFilterQuery() {
         StringBuilder queryBuilder = new StringBuilder();
         List<String> paramList = new ArrayList<String>();
@@ -338,6 +379,12 @@ public class TableQuery {
         return queryBuilder;
     }
 
+    /**
+     * Gets rows.
+     *
+     * @param <T> the type parameter
+     * @return the rows
+     */
     @SuppressWarnings("unchecked")
     public <T> List<T> getRows() {
         StringBuilder queryBuilder = new StringBuilder();
@@ -424,6 +471,11 @@ public class TableQuery {
         }
     }
 
+    /**
+     * Fetch filtered count long.
+     *
+     * @return the long
+     */
     public Long fetchFilteredCount() {
         if (StringHelper.isEmpty(criterias.getSearch()) && (!criterias.hasOneFilteredColumn())) {
             filteredCount = totalCount;
@@ -445,6 +497,11 @@ public class TableQuery {
         return filteredCount;
     }
 
+    /**
+     * Fetch total count long.
+     *
+     * @return the long
+     */
     public Long fetchTotalCount() {
         if (this.customSQL.equals("")) {
             if (innodbMap.get(this.entiteTableName) == null) {

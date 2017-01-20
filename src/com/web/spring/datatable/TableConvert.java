@@ -17,6 +17,9 @@ import java.util.stream.Collectors;
 import static java.lang.Math.toIntExact;
 
 
+/**
+ * The type Table convert.
+ */
 public class TableConvert {
     private List<?> entityList;
     private Class entityClass;
@@ -27,6 +30,12 @@ public class TableConvert {
     private HashMap<String, Class> fieldTypeMap = new HashMap<>();
     private DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+    /**
+     * Instantiates a new Table convert.
+     *
+     * @param entityList the entity list
+     * @param criterias  the criterias
+     */
     public <T> TableConvert(List<T> entityList, DatatablesCriterias criterias) {
         this.entityList = entityList;
         this.criterias = criterias;
@@ -37,15 +46,31 @@ public class TableConvert {
         }
     }
 
+    /**
+     * Gets filtered count.
+     *
+     * @return the filtered count
+     */
     public Long getFilteredCount() {
         return filteredCount;
     }
 
+    /**
+     * Gets total count.
+     *
+     * @return the total count
+     */
     public Long getTotalCount() {
         return totalCount;
     }
 
 
+    /**
+     * Gets result data set.
+     *
+     * @param <T> the type parameter
+     * @return the result data set
+     */
     public <T> DataSet<T> getResultDataSet() {
         List<T> rows = getRows();
         this.displayRecordsLength = rows.size();
@@ -65,6 +90,12 @@ public class TableConvert {
         }
     }
 
+    /**
+     * Gets rows.
+     *
+     * @param <T> the type parameter
+     * @return the rows
+     */
     @SuppressWarnings("unchecked")
     public <T> List<T> getRows() {
         List<T> rows = (List<T>) this.entityList;
@@ -79,7 +110,8 @@ public class TableConvert {
                         rows = rows.stream().filter(entity -> {
                             Object result = ReflectHelper.getMethod(entity, columnDef.getName());
                             return result.toString().contains(columnDef.getSearch());
-                        }).collect(Collectors.toList());;
+                        }).collect(Collectors.toList());
+                        ;
                     }
                 }
             }
@@ -93,7 +125,8 @@ public class TableConvert {
                                 rows = rows.stream().filter(entity -> {
                                     Object result = ReflectHelper.getMethod(entity, columnDef.getName());
                                     return Long.parseLong(result.toString()) >= unixTime;
-                                }).collect(Collectors.toList());;
+                                }).collect(Collectors.toList());
+                                ;
                             } catch (ParseException e) {
                                 e.printStackTrace();
                             }
@@ -105,7 +138,8 @@ public class TableConvert {
                                 } else {
                                     return Float.parseFloat(result.toString()) >= Float.parseFloat(columnDef.getSearchFrom());
                                 }
-                            }).collect(Collectors.toList());;
+                            }).collect(Collectors.toList());
+                            ;
                         }
                     }
                     if (StringHelper.isNotEmpty(columnDef.getSearchTo())) {
@@ -115,7 +149,8 @@ public class TableConvert {
                                 rows = rows.stream().filter(entity -> {
                                     Object result = ReflectHelper.getMethod(entity, columnDef.getName());
                                     return Long.parseLong(result.toString()) <= unixTime;
-                                }).collect(Collectors.toList());;
+                                }).collect(Collectors.toList());
+                                ;
                             } catch (ParseException e) {
                                 e.printStackTrace();
                             }
@@ -127,7 +162,8 @@ public class TableConvert {
                                 } else {
                                     return Float.parseFloat(result.toString()) <= Float.parseFloat(columnDef.getSearchTo());
                                 }
-                            }).collect(Collectors.toList());;
+                            }).collect(Collectors.toList());
+                            ;
                         }
                     }
                 }
@@ -216,14 +252,18 @@ public class TableConvert {
         /**
          * Step 4: paging
          */
-        if(criterias.getStart() + criterias.getLength() <= filteredCount) {
+        if (criterias.getStart() + criterias.getLength() <= filteredCount) {
             return rows.subList(criterias.getStart(), criterias.getStart() + criterias.getLength());
-        }
-        else {
-            return rows.subList(criterias.getStart(),toIntExact(filteredCount));
+        } else {
+            return rows.subList(criterias.getStart(), toIntExact(filteredCount));
         }
     }
 
+    /**
+     * Fetch filtered count long.
+     *
+     * @return the long
+     */
     public Long fetchFilteredCount() {
         if (StringHelper.isEmpty(criterias.getSearch()) && (!criterias.hasOneFilteredColumn())) {
             filteredCount = totalCount;
@@ -238,6 +278,11 @@ public class TableConvert {
         return filteredCount;
     }
 
+    /**
+     * Fetch total count long.
+     *
+     * @return the long
+     */
     public Long fetchTotalCount() {
         this.totalCount = (long) this.entityList.size();
         return this.totalCount;
