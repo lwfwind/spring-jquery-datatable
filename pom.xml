@@ -6,7 +6,7 @@
 
     <groupId>com.github.lwfwind.web</groupId>
     <artifactId>spring-jquery-datatable</artifactId>
-    <version>3.0</version>
+    <version>3.1</version>
     <packaging>jar</packaging>
     <description>Spring extension to work with the great jQuery plugin DataTables</description>
     <url>https://github.com/lwfwind/spring-jquery-datatable</url>
